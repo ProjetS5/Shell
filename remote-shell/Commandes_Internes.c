@@ -11,9 +11,10 @@
 
 
 void echo(char** l){
-int i = 0;
-while(l[i] !=NULL){
-	fprintf(stdout,"%s",l[i]);
-	i++;
-}
+  int i = 0;
+  while(l[i] !=NULL){
+    fprintf(stdout,"%s",l[i]);
+    i++;
+  }
+  printf("\n");
 }
