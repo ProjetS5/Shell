@@ -3,5 +3,7 @@
 #include "Shell.h"
 
 void echo (char** l);
+void date();
+void hostname();
 
 #endif

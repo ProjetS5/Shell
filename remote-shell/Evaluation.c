@@ -14,7 +14,6 @@ typedef enum fct_t {
   EXIT,
 } fct_t;
 
-void choisir_fonction(char *s);
 
 typedef void (*function)(char**);
 function f;
