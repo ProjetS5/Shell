@@ -14,6 +14,7 @@ typedef enum fct_t {
   EXIT,
 } fct_t;
 
+void choisir_fonction(char *s);
 
 typedef void (*function)(char**);
 function f;
@@ -47,6 +48,12 @@ evaluer_expr(Expression *e)
 void
 choisir_fonction(char *s){
   if(strcmp(s,"echo") == 0) f = &echo;
+  else if(strcmp(s,"date") == 0) f = &date;
+  else if(strcmp(s,"hostname") == 0) f = &hostname;
+  else if(strcmp(s,"cd") == 0) f = &cd;
+  else if(strcmp(s,"pwd") == 0) f = &pwd;
+  else if(strcmp(s,"kill") == 0) f = &kill2;
+  else if(strcmp(s,"exit") == 0) f = &exit2;
   else
     printf("cette fonctionnalité n'est pas implementé : %s \n", s);
 }

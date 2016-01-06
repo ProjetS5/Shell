@@ -5,7 +5,7 @@
 #include "Evaluation.h"
 #include <time.h>
 #include <stdio.h>
-#include <stdlib>
+#include <stdlib.h>
 #include <sys/utsname.h>
 #include <unistd.h>
 #include <signal.h>
@@ -23,13 +23,12 @@ void echo(char** l){
   printf("\n");
 }
 
-void date(){
-  
+void date(){  
   struct tm date;                 
   char format[128];
   time_t tps;
  
- //on remplit la structure avec l'heure
+  //on remplit la structure avec l'heure
   time(&tps);
   date = *localtime(&tps);       
 
@@ -38,7 +37,6 @@ void date(){
 
   //on affiche la date
   puts(format);
-
 }
 
 void hostname(){
@@ -49,27 +47,23 @@ void hostname(){
 }
 
 void cd(char *s){
-
   chdir(s);
 }
 
   
 void pwd(){
-  
   char pwd[1024];
   getcwd(pwd, sizeof(pwd));
   printf("%s\n", pwd);
-
 }
 
-/*int kill(pid_t** pid){
+int kill2(pid_t** pid){
   int i=0;
-  while(pid[i] != NULL){           //Probleme pid_t ???
-    kill(pid[i], SIGTERM);
+  while(pid[i] != NULL){
+    kill(*pid[i], SIGTERM);
     i++;
   }
 }
-*/
 
 void exit2(){
   exit(0);

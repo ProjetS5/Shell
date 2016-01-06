@@ -7,6 +7,6 @@ extern void date();
 extern void hostname();
 extern void cd(char* );
 extern void pwd();
-//extern int kill(pid_t**);
+extern int kill2(pid_t**);
 extern void exit2();
 #endif
