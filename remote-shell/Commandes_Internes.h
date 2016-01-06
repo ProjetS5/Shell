@@ -2,8 +2,11 @@
 #define COMINTERN_H
 #include "Shell.h"
 
-void echo (char** l);
-void date();
-void hostname();
-
+extern void echo (char**);
+extern void date();
+extern void hostname();
+extern void cd(char* );
+extern void pwd();
+//extern int kill(pid_t**);
+extern void exit2();
 #endif

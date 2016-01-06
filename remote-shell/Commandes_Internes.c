@@ -1,13 +1,16 @@
+#define _POSIX_SOURCE
 #include "Commandes_Internes.h"
 #include "Shell.h"
 #include "Affichage.h"
 #include "Evaluation.h"
 #include <time.h>
-#include <stdbool.h>
 #include <stdio.h>
-#include <readline/readline.h>
-#include <readline/history.h>
+#include <stdlib>
 #include <sys/utsname.h>
+#include <unistd.h>
+#include <signal.h>
+#include <sys/types.h>
+
 
 
 
@@ -43,4 +46,31 @@ void hostname(){
   uname(&host);
   
   printf("%s\n", host.nodename);
+}
+
+void cd(char *s){
+
+  chdir(s);
+}
+
+  
+void pwd(){
+  
+  char pwd[1024];
+  getcwd(pwd, sizeof(pwd));
+  printf("%s\n", pwd);
+
+}
+
+/*int kill(pid_t** pid){
+  int i=0;
+  while(pid[i] != NULL){           //Probleme pid_t ???
+    kill(pid[i], SIGTERM);
+    i++;
+  }
+}
+*/
+
+void exit2(){
+  exit(0);
 }
