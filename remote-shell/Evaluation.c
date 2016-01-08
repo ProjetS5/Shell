@@ -29,6 +29,10 @@ evaluer_expr(Expression *e)
       return EXIT_FAILURE;
     evaluer_expr(e->droite);
     break;
+  case SEQUENCE_OU :
+    if(evaluer_expr(e->gauche))
+      evaluer_expr(e->droite);
+    break;
   default :
     fprintf(stderr,"fonctionnalité non implémentée\n");
     return EXIT_FAILURE; 
