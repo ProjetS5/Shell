@@ -7,7 +7,7 @@ extern void date();
 extern void hostname();
 extern void cd(char** );
 extern void pwd();
-extern int kill2(char**);
+extern void kill2(char**);
 extern void exit2();
 extern void ls();
 #endif

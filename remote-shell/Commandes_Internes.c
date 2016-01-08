@@ -57,7 +57,7 @@ void pwd(){
   printf("%s\n", pwd);
 }
 
-int kill2(char** pid){
+void kill2(char** pid){
   int i=0;
   while(pid[i] != NULL){
     kill(atoi(pid[i]), SIGTERM);
