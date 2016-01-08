@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <sys/types.h>
-
+#include <dirent.h>
 
 
 
@@ -46,8 +46,8 @@ void hostname(){
   printf("%s\n", host.nodename);
 }
 
-void cd(char *s){
-  chdir(s);
+void cd(char **s){
+  chdir(s[0]);
 }
 
   
@@ -57,14 +57,24 @@ void pwd(){
   printf("%s\n", pwd);
 }
 
-int kill2(pid_t** pid){
+int kill2(char** pid){
   int i=0;
   while(pid[i] != NULL){
-    kill(*pid[i], SIGTERM);
+    kill(atoi(pid[i]), SIGTERM);
     i++;
   }
 }
 
 void exit2(){
   exit(0);
+}
+
+void ls(){
+	struct dirent *p;
+	DIR *rep;
+	rep = opendir(".");
+	while((p = readdir(rep))){
+		printf("%s \n", p->d_name);
+	}
+	closedir(rep);
 }
