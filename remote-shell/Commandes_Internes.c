@@ -11,6 +11,7 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <string.h>
 
 
 
@@ -59,9 +60,19 @@ void pwd(){
 
 void kill2(char** pid){
   int i=0;
+  int signal;
+  signal = SIGTERM;
   while(pid[i] != NULL){
-    kill(atoi(pid[i]), SIGTERM);
+    if (strcmp(pid[i], "-l") == 0){
+      printf(" Seulement SIGINT est implémenté, si aucun signal -> SIGTERM est envoyé\n");
+      i++;
+    }else if(strcmp(pid[i], "-SIGINT") == 0){
+      signal = SIGINT;
+      i++;
+    }else{     
+    kill(atoi(pid[i]), signal);
     i++;
+    }
   }
 }
 
