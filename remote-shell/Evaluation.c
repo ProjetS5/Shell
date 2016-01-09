@@ -2,21 +2,26 @@
 #include "Evaluation.h"
 #include "Commandes_Internes.h"
 #include "string.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 int
 evaluer_expr(Expression *e)
-{ 
+{
+  function f;
+  char **a, c, *arg, *n;
+  int pid, pd[2], tmp, fd;
+  
   switch(e->type){  
 
   case VIDE :
     printf("Je pense que t'as oublié de mettre une expression là ^^' \n");
     break;
   case SIMPLE :
-    ;
-    function f;
     if(choisir_fonction(e->arguments[0], &f))
       return EXIT_FAILURE;
-    char** a = e->arguments;
+    a = e->arguments;
     a++;
     (*f)(a);
     break;
@@ -34,8 +39,6 @@ evaluer_expr(Expression *e)
       evaluer_expr(e->droite);
     break;
   case BG :
-    ;
-    int pid;
     if((pid =fork()) == 0){
       (evaluer_expr(e->gauche));
       exit(0);
@@ -43,9 +46,6 @@ evaluer_expr(Expression *e)
     printf("[%d]\n", pid);
     break;
   case PIPE :
-    ;
-    int pd[2], tmp;
-    char c, *arg, *n;
     n = arg;
     pipe(pd);
     tmp = dup(STDOUT_FILENO);
@@ -63,6 +63,30 @@ evaluer_expr(Expression *e)
     evaluer_expr(e->droite);
     close(pd[0]);
     break;
+  case REDIRECTION_I :
+    fd = open(e->arguments[0], O_RDONLY);
+    tmp = lseek(fd, 0, SEEK_END);   
+    lseek(fd, 0, SEEK_SET);
+    if(read(fd, &c, tmp)>0)
+      (e->gauche)->arguments=AjouterArg((e->gauche)->arguments, &c);
+    close(fd);
+    evaluer_expr(e->gauche);
+    break;
+  case REDIRECTION_O :
+    fd = open(e->arguments[0], O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    pipe(pd);
+    tmp = dup(1);
+    dup2(pd[1],1);
+    evaluer_expr(e->gauche);
+    dup2(tmp,1);
+    close(pd[1]);
+    while(read(pd[0], &c, 1)>0)
+      write(fd, &c, 1);
+    close(pd[0]);
+    break;
+  case REDIRECTION_A :
+  case REDIRECTION_E :
+  case REDIRECTION_EO :
   default :
     fprintf(stderr,"fonctionnalité non implémentée\n");
     return EXIT_FAILURE; 
