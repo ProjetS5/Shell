@@ -74,6 +74,9 @@ evaluer_expr(Expression *e)
     break;
   case REDIRECTION_O :
     fd = open(e->arguments[0], O_WRONLY | O_CREAT | O_TRUNC, 0666);
+  case REDIRECTION_A :
+    if(e->type == REDIRECTION_A)
+      fd = open(e->arguments[0], O_WRONLY | O_CREAT | O_APPEND, 0666);
     pipe(pd);
     tmp = dup(1);
     dup2(pd[1],1);
@@ -84,7 +87,6 @@ evaluer_expr(Expression *e)
       write(fd, &c, 1);
     close(pd[0]);
     break;
-  case REDIRECTION_A :
   case REDIRECTION_E :
   case REDIRECTION_EO :
   default :
