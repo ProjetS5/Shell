@@ -33,6 +33,36 @@ evaluer_expr(Expression *e)
     if(evaluer_expr(e->gauche))
       evaluer_expr(e->droite);
     break;
+  case BG :
+    ;
+    int pid;
+    if((pid =fork()) == 0){
+      (evaluer_expr(e->gauche));
+      exit(0);
+    }
+    printf("[%d]\n", pid);
+    break;
+  case PIPE :
+    ;
+    int pd[2], tmp;
+    char c, *arg, *n;
+    n = arg;
+    pipe(pd);
+    tmp = dup(STDOUT_FILENO);
+    dup2(pd[1],STDOUT_FILENO);
+    evaluer_expr(e->gauche);
+    dup2(tmp, STDOUT_FILENO);
+    close(pd[1]);
+    close(tmp);
+    while(read(pd[0],&c,1)>0){
+      *n = c;
+      n++;
+    }
+    printf("%s\n",arg);
+    (e->droite)->arguments=AjouterArg((e->droite)->arguments, arg);
+    evaluer_expr(e->droite);
+    close(pd[0]);
+    break;
   default :
     fprintf(stderr,"fonctionnalité non implémentée\n");
     return EXIT_FAILURE; 
