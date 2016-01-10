@@ -11,8 +11,8 @@
 
 extern int yyparse_string(char *);
 
- bool interactive_mode = 1; // par défaut on utilise readline 
- int status = 0; // valeur retournée par la dernière commande
+bool interactive_mode = 1; // par défaut on utilise readline 
+int status = 0; // valeur retournée par la dernière commande
 
 
 /*
@@ -194,7 +194,8 @@ my_yyparse(void)
       |   - REDIRECTION_O, redirection de la sortie (>)					      |
       |   - REDIRECTION_A, redirection de la sortie en mode APPEND (>>).		      |
       |   - REDIRECTION_E, redirection de la sortie erreur,  	   			      |
-      |   - REDIRECTION_EO, redirection des sorties erreur et standard.			      |
+      |   - REDIRECTION_EO, redirection des sorties erreur et standard.                       |
+      |   - SOUS_SHELL                                                                        |
       | 										      |
       | - e.gauche et e.droite, de type Expression *, représentent une sous-expression gauche |
       |       et une sous-expression droite. Ces deux champs ne sont pas utilisés pour les    |
@@ -217,29 +218,46 @@ my_yyparse(void)
 int
 main (int argc, char **argv) 
 {
-
-  // faire en sorte qu'interactive_mode = 0 lorsque le shell est distant 
-  
-  if (interactive_mode)
-    {
-      using_history();
-    }
-  else
-    {
-      //  mode distant 
-    }
-  
-  while (1){
-    if (my_yyparse () == 0) {  /* L'analyse a abouti */   
+  if(argc > 1){
+    int cmp = 0;
+    char **args;
+    while((args[cmp] = argv[cmp]) != NULL)
+      cmp++;
+    args++;
+    for(int i=argc;i>2;i--)
+      *strchr(*args, '\0') = ' ';
+    *strchr(*args, '\0') = '\n';
+      
+    if(yyparse_string(*args) == 0){
       afficher_expr(ExpressionAnalysee);
-      //On commence ici.
       evaluer_expr(ExpressionAnalysee);
-      //fin de mes tests.
-      fflush(stdout);
       expression_free(ExpressionAnalysee);
-    }
-    else {
-      /* L'analyse de la ligne de commande a donné une erreur */
+      }
+  }
+  else{
+    // faire en sorte qu'interactive_mode = 0 lorsque le shell est distant 
+    
+    if (interactive_mode)
+      {
+	using_history();
+      }
+    else
+      {
+	//  mode distant 
+      }
+    
+    while (1){
+      if (my_yyparse () == 0) {  /* L'analyse a abouti */   
+	afficher_expr(ExpressionAnalysee);
+	//On commence ici.
+	evaluer_expr(ExpressionAnalysee);
+	//fin de mes tests.
+	fflush(stdout);
+	expression_free(ExpressionAnalysee);
+      }
+      else {
+	/* L'analyse de la ligne de commande a donné une erreur */
+      }
     }
   }
   return 0;

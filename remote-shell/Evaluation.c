@@ -4,6 +4,7 @@
 #include "string.h"
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <fcntl.h>
 
 int
@@ -11,7 +12,7 @@ evaluer_expr(Expression *e)
 {
   function f;
   char **a, c, *arg, *n;
-  int pid, pd[2], tmp, fd;
+  int pid, pd[2], cmp, tmp, tmp2, fd;
   
   switch(e->type){  
 
@@ -39,13 +40,16 @@ evaluer_expr(Expression *e)
       evaluer_expr(e->droite);
     break;
   case BG :
-    if((pid =fork()) == 0){
+    if(!(pid =fork())){
       (evaluer_expr(e->gauche));
       exit(0);
     }
     printf("[%d]\n", pid);
     break;
   case PIPE :
+    cmp = 20;
+    if(!(arg = malloc(cmp*sizeof(arg))))
+       exit(EXIT_FAILURE);
     n = arg;
     pipe(pd);
     tmp = dup(STDOUT_FILENO);
@@ -57,20 +61,26 @@ evaluer_expr(Expression *e)
     while(read(pd[0],&c,1)>0){
       *n = c;
       n++;
+      if((n-arg)>cmp){
+	cmp *= 2;
+	if(!(arg = realloc(arg, cmp*sizeof(arg))))
+	  exit(EXIT_FAILURE);
+      }
     }
-    printf("%s\n",arg);
     (e->droite)->arguments=AjouterArg((e->droite)->arguments, arg);
     evaluer_expr(e->droite);
     close(pd[0]);
+    free(arg);
     break;
   case REDIRECTION_I :
     fd = open(e->arguments[0], O_RDONLY);
-    tmp = lseek(fd, 0, SEEK_END);   
+    cmp = lseek(fd, 0, SEEK_END);   
     lseek(fd, 0, SEEK_SET);
-    if(read(fd, &c, tmp)>0)
+    if(read(fd, &c, cmp)>0)
       (e->gauche)->arguments=AjouterArg((e->gauche)->arguments, &c);
     close(fd);
     evaluer_expr(e->gauche);
+    free(arg);
     break;
   case REDIRECTION_O :
     fd = open(e->arguments[0], O_WRONLY | O_CREAT | O_TRUNC, 0666);
@@ -87,8 +97,36 @@ evaluer_expr(Expression *e)
       write(fd, &c, 1);
     close(pd[0]);
     break;
-  case REDIRECTION_E :
   case REDIRECTION_EO :
+  case REDIRECTION_E :
+    fd = open(e->arguments[0], O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    pipe(pd);
+    tmp = dup(2);
+    if(e->type == REDIRECTION_EO){
+      tmp2 = dup(1);
+      dup2(pd[1],1);
+    }
+    dup2(pd[1],2);
+    evaluer_expr(e->gauche);
+    if(e->type == REDIRECTION_EO)
+      dup2(tmp2,1);
+    dup2(tmp,2);
+    close(pd[1]);
+    while(read(pd[0], &c, 1)>0)
+      write(fd, &c, 1);
+    close(pd[0]);
+    break;
+  case SOUS_SHELL :
+    cmp = 0;
+    if(!(a = malloc(sizeof((e->gauche)->arguments) + 20*sizeof(char*))))
+       exit(EXIT_FAILURE);
+    *a = "./Shell\0";
+    while((a[1+cmp] = (e->gauche)->arguments[cmp]) != NULL)
+      cmp++;
+    if(!fork())
+      execv(*a, a);
+    free(a);
+    break;
   default :
     fprintf(stderr,"fonctionnalité non implémentée\n");
     return EXIT_FAILURE; 
@@ -108,7 +146,7 @@ choisir_fonction(char *s, function *f){
   else if(strcmp(s,"exit") == 0) *f = &exit2;
   else if(strcmp(s,"ls") == 0) *f = &ls;
   else{
-    printf("cette fonctionnalité n'est pas implementé : %s \n", s);
+    fprintf(stderr, "cette fonctionnalité n'est pas implementé : %s \n", s);
     return EXIT_FAILURE;
   }
   return 0;
