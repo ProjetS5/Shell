@@ -12,7 +12,7 @@ evaluer_expr(Expression *e)
 {
   function f;
   char **a, c, *arg, *n;
-  int pid, pd[2], cmp, tmp, tmp2, fd;
+  int pid, pd[2], size, tmp, tmp2, fd;
   
   switch(e->type){  
 
@@ -47,8 +47,8 @@ evaluer_expr(Expression *e)
     printf("[%d]\n", pid);
     break;
   case PIPE :
-    cmp = 20;
-    if(!(arg = malloc(cmp*sizeof(arg))))
+    size = 20;
+    if(!(arg = malloc(size*sizeof(arg))))
        exit(EXIT_FAILURE);
     n = arg;
     pipe(pd);
@@ -56,31 +56,34 @@ evaluer_expr(Expression *e)
     dup2(pd[1],STDOUT_FILENO);
     evaluer_expr(e->gauche);
     dup2(tmp, STDOUT_FILENO);
-    close(pd[1]);
-    close(tmp);
+    if(close(pd[1]))
+      close_erreur();
+    if(close(tmp))
+      close_erreur();
     while(read(pd[0],&c,1)>0){
       *n = c;
       n++;
-      if((n-arg)>cmp){
-	cmp *= 2;
-	if(!(arg = realloc(arg, cmp*sizeof(arg))))
+      if((n-arg)>size){
+	size *= 2;
+	if(!(arg = realloc(arg, size*sizeof(arg))))
 	  exit(EXIT_FAILURE);
       }
     }
     (e->droite)->arguments=AjouterArg((e->droite)->arguments, arg);
     evaluer_expr(e->droite);
-    close(pd[0]);
+    if(close(pd[0]))
+      close_erreur();
     free(arg);
     break;
   case REDIRECTION_I :
     fd = open(e->arguments[0], O_RDONLY);
-    cmp = lseek(fd, 0, SEEK_END);   
+    size = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
-    if(read(fd, &c, cmp)>0)
+    if(read(fd, &c, size)>0)
       (e->gauche)->arguments=AjouterArg((e->gauche)->arguments, &c);
-    close(fd);
+    if(!(size >= 30) && close(fd))
+      close_erreur();
     evaluer_expr(e->gauche);
-    free(arg);
     break;
   case REDIRECTION_O :
     fd = open(e->arguments[0], O_WRONLY | O_CREAT | O_TRUNC, 0666);
@@ -92,10 +95,12 @@ evaluer_expr(Expression *e)
     dup2(pd[1],1);
     evaluer_expr(e->gauche);
     dup2(tmp,1);
-    close(pd[1]);
+    if(close(pd[1]))
+      close_erreur();
     while(read(pd[0], &c, 1)>0)
       write(fd, &c, 1);
-    close(pd[0]);
+    if(close(pd[0]))
+       close_erreur();
     break;
   case REDIRECTION_EO :
   case REDIRECTION_E :
@@ -111,18 +116,20 @@ evaluer_expr(Expression *e)
     if(e->type == REDIRECTION_EO)
       dup2(tmp2,1);
     dup2(tmp,2);
-    close(pd[1]);
+    if(close(pd[1]))
+      close_erreur();
     while(read(pd[0], &c, 1)>0)
       write(fd, &c, 1);
-    close(pd[0]);
+    if(close(pd[0]))
+      close_erreur();
     break;
   case SOUS_SHELL :
-    cmp = 0;
+    size = 0;
     if(!(a = malloc(sizeof((e->gauche)->arguments) + 20*sizeof(char*))))
        exit(EXIT_FAILURE);
     *a = "./Shell\0";
-    while((a[1+cmp] = (e->gauche)->arguments[cmp]) != NULL)
-      cmp++;
+    while((a[1+size] = (e->gauche)->arguments[size]) != NULL)
+      size++;
     if(!fork())
       execv(*a, a);
     free(a);
@@ -145,9 +152,16 @@ choisir_fonction(char *s, function *f){
   else if(strcmp(s,"kill") == 0) *f = &kill2;
   else if(strcmp(s,"exit") == 0) *f = &exit2;
   else if(strcmp(s,"ls") == 0) *f = &ls;
+  else if(strcmp(s, "history") == 0) *f = &history;
   else{
     fprintf(stderr, "cette fonctionnalité n'est pas implementé : %s \n", s);
     return EXIT_FAILURE;
   }
   return 0;
+}
+
+void
+close_erreur(){
+  perror("close");
+  exit(EXIT_FAILURE);
 }

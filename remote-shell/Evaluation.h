@@ -6,5 +6,6 @@
 typedef void (*function)(char**);
 extern int evaluer_expr(Expression *e);
 extern int choisir_fonction(char *s, function *f);
+extern void close_erreur(void);
 
 #endif
