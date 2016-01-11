@@ -10,4 +10,5 @@ extern void pwd();
 extern void kill2(char**);
 extern void exit2();
 extern void ls();
+//extern void history();
 #endif

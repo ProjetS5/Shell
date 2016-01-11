@@ -12,6 +12,8 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <string.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 
 
 
@@ -88,4 +90,16 @@ void ls(){
 		printf("%s \n", p->d_name);
 	}
 	closedir(rep);
+}
+
+void history(){
+	
+	char*line_read = (char *)NULL;
+	
+	line_read = readline ("");
+	if (line_read && *line_read){
+		add_history (line_read);}
+	printf("%s\n",line_read);
+	
+
 }
