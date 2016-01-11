@@ -10,7 +10,10 @@
 #include <unistd.h>
 #include <signal.h>
 #include <sys/types.h>
-
+#include <dirent.h>
+#include <string.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 
 
 
@@ -46,8 +49,8 @@ void hostname(){
   printf("%s\n", host.nodename);
 }
 
-void cd(char *s){
-  chdir(s);
+void cd(char **s){
+  chdir(s[0]);
 }
 
   
@@ -57,14 +60,46 @@ void pwd(){
   printf("%s\n", pwd);
 }
 
-int kill2(pid_t** pid){
+void kill2(char** pid){
   int i=0;
+  int signal;
+  signal = SIGTERM;
   while(pid[i] != NULL){
-    kill(*pid[i], SIGTERM);
+    if (strcmp(pid[i], "-l") == 0){
+      printf(" Seulement SIGINT est implémenté, si aucun signal -> SIGTERM est envoyé\n");
+      i++;
+    }else if(strcmp(pid[i], "-SIGINT") == 0){
+      signal = SIGINT;
+      i++;
+    }else{     
+    kill(atoi(pid[i]), signal);
     i++;
+    }
   }
 }
 
 void exit2(){
   exit(0);
+}
+
+void ls(){
+	struct dirent *p;
+	DIR *rep;
+	rep = opendir(".");
+	while((p = readdir(rep))){
+		printf("%s \n", p->d_name);
+	}
+	closedir(rep);
+}
+
+void history(){
+	
+	char*line_read = (char *)NULL;
+	
+	line_read = readline ("");
+	if (line_read && *line_read){
+		add_history (line_read);}
+	printf("%s\n",line_read);
+	
+
 }
