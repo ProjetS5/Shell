@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <sys/wait.h>
 
 extern int yyparse_string(char *);
 
@@ -214,10 +215,10 @@ my_yyparse(void)
       |       fichier vers lequel on redirige.						      |
       `--------------------------------------------------------------------------------------*/
 
-
 int
 main (int argc, char **argv) 
 {
+  
   if(argc > 1){
     int cmp = 0;
     char **args;
@@ -247,6 +248,7 @@ main (int argc, char **argv)
       }
     
     while (1){
+      wait3(NULL, WNOHANG, NULL);
       if (my_yyparse () == 0) {  /* L'analyse a abouti */   
 	afficher_expr(ExpressionAnalysee);
 	//On commence ici.
