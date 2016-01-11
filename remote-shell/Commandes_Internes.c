@@ -4,14 +4,10 @@
 #include "Affichage.h"
 #include "Evaluation.h"
 #include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <sys/utsname.h>
 #include <unistd.h>
 #include <signal.h>
-#include <sys/types.h>
 #include <dirent.h>
-#include <string.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 
